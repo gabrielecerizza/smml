@@ -11,9 +11,20 @@ class Kernel(metaclass=ABCMeta):
     def compute(self, x1, x2):
         pass
 
+    @abstractmethod
+    def compute_kernel_matrix(self, X):
+        pass
+
 class GaussianKernel(Kernel):
     def __init__(self, gamma=0.25):
         self.gamma = gamma
 
     def compute(self, x1, x2):
         return np.exp(-la.norm(x1 - x2) ** 2 / (2 * self.gamma))
+    
+    def compute_kernel_matrix(self, X):
+        # TODO: explain newaxis
+        return np.exp(
+            -(np.linalg.norm(X[:,np.newaxis,:] - X, axis=-1) ** 2) 
+            / (2 * self.gamma))
+    
