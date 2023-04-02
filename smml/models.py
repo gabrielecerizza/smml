@@ -21,7 +21,7 @@ class Pegasos:
         self.y_train = y
         self.alphas = np.zeros(X.shape[0])
         rng = np.random.default_rng(self.seed)
-        K = self.kernel.compute_kernel_matrix(X)
+        K = self.kernel.compute_kernel_matrix(X, X)
 
         for t in tqdm(range(1, self.T + 1)):
             i = rng.integers(X.shape[0])
@@ -29,10 +29,9 @@ class Pegasos:
             if (y[i] / (self.l * t)) * s < 1:
                 self.alphas[i] += 1
 
-    def predict(self, X):
+    def predict_proba(self, X):
         #TODO: check if we can remove eta, sign should not change
 
-        return np.array(
-            [np.sign((1 / (self.l * self.T)) 
-                     * np.sum([self.alphas[j] * self.y_train[j] * self.K(self.X_train[j], x) 
-                               for j in range(self.X_train.shape[0])])) for x in X])
+        K = self.kernel.compute_kernel_matrix(X, self.X_train)
+        eta = 1 / (self.l * self.T)
+        return eta * ((self.alphas * self.y_train).dot(K))
