@@ -1,0 +1,2 @@
+# Multiclass Classification with Pegasos - Statistical Methods for Machine Learning Project
+Project repository for the Statistical Methods for Machine Learning course of Università degli Studi di Milano (UNIMI), academic year 2022/2023.
