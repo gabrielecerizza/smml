@@ -26,7 +26,7 @@ class Pegasos:
 
         for t in range(1, self.T + 1):
             i = rng.integers(X.shape[0])
-            s = self.alphas_.dot(y * K[i])
+            s = (self.alphas_ * y).dot(K[i])
             if (y[i] / (self.l * t)) * s < 1:
                 self.alphas_[i] += 1
 
@@ -55,10 +55,11 @@ class MulticlassPegasos:
         self.X_train_ = X
         self.y_train_ = y
         self.predictors_ = []
+
+        #TODO: Useful because recomputing kernels for each predictor is redundant
         K = self.kernel.compute_kernel_matrix(X, X)
 
-        for class_label in tqdm(
-            np.unique(y), desc='Training predictors'):
+        for class_label in np.unique(y):
             p = Pegasos(self.l, self.T, self.kernel, self.seed)
             y_enc = np.where(y == class_label, 1, -1)
             p.fit(X, y_enc, K)
@@ -75,3 +76,7 @@ class MulticlassPegasos:
             'zero_one_loss': 1 - accuracy,
             'accuracy': accuracy
         }
+
+    def set_params(self, params):
+        for param, value in params.items():
+            self.__setattr__(param, value)

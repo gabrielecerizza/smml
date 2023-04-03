@@ -26,7 +26,7 @@ def test_pegasos_fit():
         rng = np.random.default_rng(42)
         for t in range(1, 100):
             i = rng.integers(X.shape[0])
-            s = alphas2.dot(Y * K[i])
+            s = (alphas2 * Y).dot(K[i])
             if (Y[i] / (l * t)) * s < 1:
                 alphas2[i] += 1
 
