@@ -5,7 +5,8 @@ from smml.kernels import GaussianKernel
 
 class Pegasos:
     def __init__(
-            self, l=0.5, T=1000, kernel=GaussianKernel(), seed=42):
+            self, l=0.5, T=1000, 
+            kernel=GaussianKernel(), seed=42):
         self.l = l
         self.T = T
         self.kernel = kernel
@@ -30,17 +31,17 @@ class Pegasos:
                 self.alphas_[i] += 1
 
     def predict(self, X=None, K=None):
-        #TODO: check if we can remove eta, sign should not change
-        # eta positive, so monotone function, does not change order
         if K is None:
-            K = self.kernel.compute_kernel_matrix(X, self.X_train_)
+            K = self.kernel.compute_kernel_matrix(
+                X, self.X_train_)
 
         return (self.alphas_ * self.y_train_).dot(K)
 
 
 class MulticlassPegasos:
     def __init__(
-            self, l=0.5, T=1000, kernel=GaussianKernel(), seed=42):
+            self, l=0.5, T=1000, 
+            kernel=GaussianKernel(), seed=42):
         self.l = l
         self.T = T
         self.kernel = kernel
@@ -55,7 +56,6 @@ class MulticlassPegasos:
         self.y_train_ = y
         self.predictors_ = []
 
-        #TODO: Useful because recomputing kernels for each predictor is redundant
         K = self.kernel.compute_kernel_matrix(X, X)
 
         for class_label in np.unique(y):

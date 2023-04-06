@@ -58,12 +58,7 @@ class KFoldCrossValidation:
             yield (np.delete(X, folds[i], axis=0), 
                    np.take(X, folds[i], axis=0), 
                    np.delete(y, folds[i], axis=0), 
-                   np.take(y, folds[i], axis=0))     
-    
-    def plot_folds_stratification(self):
-        # TODO: np.bincount(np.take(y, folds[0])), 
-        # np.bincount(np.take(y, folds[1]))
-        pass
+                   np.take(y, folds[i], axis=0))
 
 
 class ParamGridCrossValidation:

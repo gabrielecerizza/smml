@@ -39,7 +39,7 @@ In Section~\ref{sec:dataset} we illustrate the dataset used in the experiments. 
 \section{Dataset}
 \label{sec:dataset}
 
-Our analysis was carried out on the USPS dataset\footnote{\url{https://www.kaggle.com/datasets/bistaumanga/usps-dataset}}, comprising 9298 $16 \times 16$ grayscale images. These images depict handwritten digits ranging from 0 to 9. A sample of these digits can be seen in Figure~\ref{fig:dataset:digits}. The classes do not present severe imbalance issues, as shown in Figure~\ref{fig:dataset:class_counts}.
+Our analysis was carried out on the USPS dataset\footnote{\url{https://www.kaggle.com/datasets/bistaumanga/usps-dataset}}, comprising 9298 $16\times16$ grayscale images. These images depict handwritten digits ranging from 0 to 9. A sample of these digits can be seen in Figure~\ref{fig:dataset:digits}. The classes do not present severe imbalance issues, as shown in Figure~\ref{fig:dataset:class_counts}. The values of the examples are scaled in the interval $[0, 1]$.
 
 To gauge the complexity of multiclass classification on this dataset, we performed dimensionality reduction by way of  t-distributed Stochastic Neighbor Embedding (t-SNE)~\cite{maaten-2008-tsne} and projected the examples onto a two-dimensional space. The result is given in Figure~\ref{fig:dataset:tsne}. Within this figure the examples are clustered into ten clearly distinguishable groups, thus suggesting a low complexity classification task.   
 
@@ -94,7 +94,7 @@ Pegasos solves this optimization problem using a stochastic gradient descent app
 \begin{equation}
   g_{t+1} = \frac{1}{\lambda t} \sum_{r = 1}^{t} \mathbb{I}\{h_{s_r}(g_r) > 0\} y_{s_r} K(\bm{x}_{s_r}, \cdot) \, , \label{eqn:pegasos:g}
 \end{equation}
-where $\mathbb{I}$ is the indicator function, $s_r$ is the index of the example randomly drawn at iteration $r$, and $K : \mathbb{R}^d \times \mathbb{R}^d \to \mathbb{R}$ is a kernel function such that $K(\bm{x},\bm{x}^\prime) = \langle \phi_K(\bm{x}), \phi_K(\bm{x}^\prime) \rangle_K$.
+where $\mathbb{I}$ is the indicator function, $s_r$ is the index of the training example randomly drawn at iteration $r$, and $K : \mathbb{R}^d \times \mathbb{R}^d \to \mathbb{R}$ is a kernel function such that $K(\bm{x},\bm{x}^\prime) = \langle \phi_K(\bm{x}), \phi_K(\bm{x}^\prime) \rangle_K$.
 
 Note that $g_{t+1}$ is a function, not a vector. Indeed, the dot in $K(\bm{x}_{s_r}, \cdot)$ stands for a missing argument, corresponding to the example on which the function is evaluated. Therefore, unlike vectors, $g_{t+1}$ cannot be stored in memory and used to perform inference on new examples, since we have to evaluate $g_{t+1}$ on them first.
 
@@ -196,7 +196,7 @@ where $R \in \mathbb{R}^{n \times n \times m}$ is a tensor having $R_i = S_i - S
 
 One caveat of this approach is that $R$ has a much larger memory footprint than the $n \times n$ kernel matrix. At most, the required memory would be $0.34 \times 256 \approx 87$ gigabytes. For this reason, it is necessary to split $S$ into chunks, apply the procedure on each chunk and then concatenate the results.
 
-\subsubsection{Comparison.} The training runtime reduction obtained by applying the abovementioned optimizations on a single binary classifier is given in Figure~\ref{fig:algorithm:runtime}. The shown improvement becomes even more promiment when accounting the fact that, for multiclass classification, multiple classifiers need to be trained.
+\subsubsection{Comparison.} The training runtime reduction obtained by applying the abovementioned optimizations on a single binary classifier is given in Figure~\ref{fig:algorithm:runtime}. The shown improvement becomes even more prominent when accounting the fact that, for multiclass classification, multiple classifiers need to be trained.
 
 \begin{figure}
   \center
@@ -216,61 +216,87 @@ In this section we show the results of our experiments on the multiclass classif
 
 Concerning $T$, we gauged the performance of the algorithm over an increasing number of iterations, starting from a number much smaller than the cardinality of the training set and ending with a number several times bigger than the cardinality of the training set. More precisely, we chose the following values: 1000, 5000, 10000, 25000, 50000.
 
-Concerning $\lambda$, in~\cite{shalev-pegasos-2011} the Pegasos algorithm was evaluated on the USPS dataset using $\lambda$ equal to $1.36 \times 10^{-4}$. It was also observed therein how, given a fixed number of iterations, the performance of the algorithm was inversely proportional to the value of $\lambda$, where $\lambda$ ranged from 1e-7 to 1e-3. We followed this insight and took the analysis one step further, experimenting with even higher values of $\lambda$, ranging from 1e-5 to 10.
+Concerning $\lambda$, in~\cite{shalev-pegasos-2011} the Pegasos algorithm was evaluated on the USPS dataset using $\lambda$ equal to $1.36 \times 10^{-4}$. It was also observed therein how, given a fixed number of iterations, the performance of the algorithm was inversely proportional to the value of $\lambda$, where $\lambda$ ranged from 1e-7 to 1e-3. The authors remarked that this behavior of the Pegasos algorithm for low values of $\lambda$ was known and attempts were being made to improve the performance for these values of the hyperparameter. We followed this insight, avoiding very low values of $\lambda$, and took the analysis one step further, experimenting with even higher values of $\lambda$, ranging from 1e-5 to 10.
 
-We ran the algorithm with the polynomial and Gaussian kernel. The polynomial kernel was experimented upon with $n$ equal to 2, 3, 4 and 7, in order to assess the effectiveness of the algorithm at both low and high degrees of the polynomial. The Gaussian kernel was run with $\gamma$ equal to $0.25$, as suggested in the project requirements, although we note that in~\cite{shalev-pegasos-2011} the authors used $\gamma$ equal to $2$ on the USPS dataset.
+We ran the algorithm with the polynomial and Gaussian kernel. The polynomial kernel was experimented upon with $n$ equal to 2, 3, 4 and 7, in order to assess the effectiveness of the algorithm at both low and high degrees of the polynomial. The Gaussian kernel was run with $\gamma$ equal to 0.25, as suggested in the project requirements, and also with $\gamma$ equal to 0.75 and 2. We note that in~\cite{shalev-pegasos-2011} the authors used $\gamma$ equal to $2$ on the USPS dataset.
 
-\subsubsection{Results.} The cross-validated test error (zero-one loss) of the Pegasos algorithm over the USPS dataset with respect to the different training settings is shown in Figures~\ref{fig:experiments:polynomial_2}, \ref{fig:experiments:polynomial_3}.
+\subsubsection{Results.} The cross-validated test error (zero-one loss) of the Pegasos algorithm over the USPS dataset with respect to the different training settings is shown in Figures~\ref{fig:experiments:polynomial_2}, \ref{fig:experiments:polynomial_3}, \ref{fig:experiments:polynomial_4}, \ref{fig:experiments:polynomial_7}, \ref{fig:experiments:gaussian_25}, \ref{fig:experiments:gaussian_75}, and \ref{fig:experiments:gaussian_2}.
 
-Considering the settings employing a polynomial kernel, we observe 
+Considering the training settings employing a polynomial kernel (Figures~\ref{fig:experiments:polynomial_2}, \ref{fig:experiments:polynomial_3}, \ref{fig:experiments:polynomial_4}, and \ref{fig:experiments:polynomial_7}), the best result is obtained using a degree of 3 (0.026), with degree 4 being very close (0.027). We can also observe how $\lambda$ plays a marginal role in determining the test error, with the exception of the test error measured when the degree is equal to 2. When using a degree of 7, the algorithm becomes completely insensitive to hyperparameter $\lambda$. Moreover, using a degree of 7 yields results that are generally worse across all choices of $T$, even when compared with degree 2. This is the telltale sign of overfitting.
+
+Considering the training settings employing a Gaussian kernel (Figures~\ref{fig:experiments:gaussian_25}, \ref{fig:experiments:gaussian_75}, and \ref{fig:experiments:gaussian_2}), the best result is obtained with $\gamma$ equal to 2 (0.027). The hyperparameter $\lambda$ scarcely affects the performance of the algorithm when $\gamma$ is equal to 0.25 or 0.75, whereas it has a major effect when $\gamma$ is equal to 2. This behavior mirrors the one observed for the polynomial kernel, where overfitting hampered the effect of hyperparameter $\lambda$ and prevented the algorithm from reaching the optimal test error of lower degree polynomial kernels. On a related note, we remind that, for the Gaussian kernel, overfitting occurs when $\gamma$ is small with respect to the Euclidean distance between two examples. Contrary to what was observed in~\cite{shalev-pegasos-2011}, the algorithm yields a better test error when using low values of $\lambda$, at least within the investigated interval. This can be noticed across all values of $\gamma$ and all values of $T$.
+
+Surprisingly, the overall best setting for the polynomial kernel outperforms the overall best setting for the Gaussian kernel, albeit by a small margin. However, the best setting for the Gaussian kernel is consistently better than the best setting for the polynomial kernel when using a small number of iterations (namely, 1000, 5000, 10000, 25000). In addition, the overall best setting for the Gaussian kernel reaches its optimal test error faster than the overall best setting for the polynomial kernel. Indeed, while the polynomial kernel with degree 3 reaches 0.026 test error with 50000 iterations, the Gaussian kernel with $\gamma$ equal to 2 reaches 0.027 test error with half the iterations.
+
+Finally, Figure~\ref{fig:experiments:cv_runtime} shows the runtime of the algorithm for the different values of $T$, averaged with respect to the values of $\lambda$. From this figure we infer that training with the Gaussian kernel requires significantly more time than training with the polynomial kernel across all the values of $T$. The runtime presents also an upward trend when increasing the number of iterations, although the growth is small and seemingly linear in the number of iterations. 
 
 \begin{figure}
   \center
   \includegraphics[width=0.8\linewidth]{../img/poly_2_error.png}
-  \caption{Cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a polynomial kernel of degree 2.} 
+  \caption{5-fold cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a polynomial kernel of degree 2.} 
   \label{fig:experiments:polynomial_2}
 \end{figure}
 
 \begin{figure}
   \center
   \includegraphics[width=0.8\linewidth]{../img/poly_3_error.png}
-  \caption{Cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a polynomial kernel of degree 3.} 
+  \caption{5-fold cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a polynomial kernel of degree 3.} 
   \label{fig:experiments:polynomial_3}
 \end{figure}
 
 \begin{figure}
   \center
   \includegraphics[width=0.8\linewidth]{../img/poly_4_error.png}
-  \caption{Cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a polynomial kernel of degree 4.} 
+  \caption{5-fold cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a polynomial kernel of degree 4.} 
   \label{fig:experiments:polynomial_4}
 \end{figure}
 
 \begin{figure}
   \center
   \includegraphics[width=0.8\linewidth]{../img/poly_7_error.png}
-  \caption{Cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a polynomial kernel of degree 7.} 
+  \caption{5-fold cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a polynomial kernel of degree 7.} 
   \label{fig:experiments:polynomial_7}
 \end{figure}
 
-zero-one loss
+\begin{figure}
+  \center
+  \includegraphics[width=0.8\linewidth]{../img/gaussian_25_error.png}
+  \caption{5-fold cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a Gaussian kernel with $\gamma$ equal to 0.25.} 
+  \label{fig:experiments:gaussian_25}
+\end{figure}
 
-Namely, we
-hose values that emphasized both the capacity of the algorithm to quickly 
-the runtime overhead of the naive implementation 
-This is exacerbated
-Remove tags for equations unless needed
-Under scrutiny
-PCA?, Standard Scaler?
-Fare un unico plot con i tempi
-regenerate frequency classes img
-check again runtime, that 0 is strange
+\begin{figure}
+  \center
+  \includegraphics[width=0.8\linewidth]{../img/gaussian_75_error.png}
+  \caption{5-fold cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a Gaussian kernel with $\gamma$ equal to 0.75.} 
+  \label{fig:experiments:gaussian_75}
+\end{figure}
+
+\begin{figure}
+  \center
+  \includegraphics[width=0.8\linewidth]{../img/gaussian_2_error.png}
+  \caption{5-fold cross-validated test error (zero-one loss) of the Pegasos algorithm for multiclass classification over the USPS dataset, employing a Gaussian kernel with $\gamma$ equal to 2.} 
+  \label{fig:experiments:gaussian_2}
+\end{figure}
+
+\begin{figure}
+  \center
+  \includegraphics[width=0.8\linewidth]{../img/cv_runtime.png}
+  \caption{Runtime of the Pegasos algorithm for multiclass classification over the USPS dataset across the different values of $T$, averaged with respect to the values of $\lambda$.} 
+  \label{fig:experiments:cv_runtime}
+\end{figure}
 
 \section{Conclusions}
 \label{sec:conclusions}
 
+In this work we investigated the performance of the Pegasos algorithm described in Section~\ref{sec:algorithm} on a multiclass classification task over the USPS dataset described in Section~\ref{sec:dataset}. The algorithm was evaluated with 5-fold stratified cross-validation across various settings of hyperparameters. The best performance (0.026 test error with zero-one loss) was achieved by using a polynomial kernel of degree 3, 50000 iterations and a regularization coefficient of 1. A similar performance (0.027 test error) was achieved by using a Gaussian kernel with $\gamma$ equal to 2, 25000 iterations and a regularization coefficient of 1e-5.
+
+The algorithm proved to be an effective classification tool, although the task was not particularly challenging. Moreover, the algorithm showed a noteworthy rate of convergence, bordering a test error of 0.070 after only 1000 iterations when using the Gaussian kernel with $\gamma$ equal to 2.
+
+Further research might explore a wider set of hyperparameters, especially in the direction of lower regularization coefficient values and higher values of $\gamma$ when using a Gaussian kernel.
+
 \section*{Statement}
 \textit{I/We declare that this material, which I/We now submit for assessment, is entirely my/our own work and has not been taken from the work of others, save and to the extent that such work has been cited and acknowledged within the text of my/our work. I/We understand that plagiarism, collusion, and copying are grave and serious offences in the university and accept the penalties that would be imposed should I engage in plagiarism, collusion or copying. This assignment, or any part of it, has not been previously submitted by me/us or any other person for assessment on this or any other course of study.}
-
 
 \bibliographystyle{acm}
 \bibliography{bibtex_entries}

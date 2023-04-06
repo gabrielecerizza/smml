@@ -40,7 +40,6 @@ class GaussianKernel(Kernel):
         return np.vstack(res)
     
     def compute_kernel_matrix_fast(self, X1, X2):
-        # TODO: explain newaxis
         return np.exp(
             -(np.linalg.norm(X1[:,np.newaxis,:] - X2, axis=-1) ** 2) 
             / (2 * self.gamma))
@@ -55,6 +54,3 @@ class PolynomialKernel(Kernel):
     
     def compute_kernel_matrix(self, X1, X2):
         return (1 + X2.dot(X1.T)) ** self.n
-
-    
-    

@@ -7,7 +7,7 @@ from sklearn.manifold import TSNE
 
 mpl.rcParams['font.family'] = ['serif']
 mpl.rcParams['font.serif'] = ['cmr10']
-# plt.rc('text', usetex=True) TODO
+plt.rc('text', usetex=True)
 
 
 def heatmap(data, row_labels, col_labels, title, 
@@ -214,3 +214,29 @@ def plot_runtime_comparison(Ts, times):
                     pad=15, weight='bold')
     fig.tight_layout()
     plt.savefig('img/runtime.png', dpi=300, bbox_inches='tight')
+
+
+def plot_cv_runtime(files, labels, param_grid):
+    fig, ax = plt.subplots()
+    Ts = param_grid['T']
+
+    for file, label in zip(files, labels):
+        res = ''
+        with open(file,'r') as f:
+            for i in f.readlines():
+                res=i
+        res = eval(res)
+
+        times = np.array([val['time'] for val in res.values()])
+        times = times.reshape((len(Ts), len(param_grid['l'])))
+        times = times.mean(axis=-1)
+        ax.plot(Ts, times, label=label)
+
+    ax.legend()
+    ax.set_xlabel('Number of iterations (T)', labelpad=15)
+    ax.set_ylabel('Runtime (s)', labelpad=15)
+    ax.set_title(r'\textbf{Average cross-validation runtime}', 
+                    pad=15, weight='bold')
+    fig.tight_layout()
+    plt.savefig(
+        'img/cv_runtime.png', dpi=300, bbox_inches='tight')
