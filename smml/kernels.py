@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 from numpy import linalg as la
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 
 class Kernel(metaclass=ABCMeta):
@@ -35,9 +35,7 @@ class GaussianKernel(Kernel):
     def compute_kernel_matrix(self, X1, X2):
         X2_splits = np.array_split(X2, 20)
         res = []
-        for split in tqdm(X2_splits, 
-                          desc='Computing kernel matrix',
-                          leave=False):
+        for split in X2_splits:
             res.append(self.compute_kernel_matrix_fast(split, X1))
         return np.vstack(res)
     

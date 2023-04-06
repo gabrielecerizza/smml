@@ -3,7 +3,7 @@ from collections import defaultdict
 from itertools import product
 
 import numpy as np
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 
 class KFoldCrossValidation:

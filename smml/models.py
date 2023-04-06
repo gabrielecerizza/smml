@@ -1,5 +1,4 @@
 import numpy as np
-from tqdm.auto import tqdm
 
 from smml.kernels import GaussianKernel
 

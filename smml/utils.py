@@ -7,7 +7,7 @@ from sklearn.manifold import TSNE
 
 mpl.rcParams['font.family'] = ['serif']
 mpl.rcParams['font.serif'] = ['cmr10']
-plt.rc('text', usetex=True)
+# plt.rc('text', usetex=True) TODO
 
 
 def heatmap(data, row_labels, col_labels, title, 
@@ -135,18 +135,17 @@ def annotate_heatmap(im, data=None, valfmt='{x:.3f}',
     return texts
 
 
-def plot_error_heatmap(
-        res_dict, param_grid, title, xlabel, ylabel, filename):
+def plot_heatmap(
+        data, param_grid, title, xlabel, ylabel, cbarlabel, 
+        filename, cmap='viridis_r'):
     param_values = list(param_grid.values())
-    errors = np.array(
-        [val['error'] for val in res_dict.values()]).round(3)
-    errors = errors.reshape(
+    data = data.reshape(
         len(param_values[0]), len(param_values[1]))
     fig, ax = plt.subplots()
     
-    im, cbar = heatmap(errors, param_values[0], param_values[1], 
-                       ax=ax, cmap='viridis_r', 
-                       cbarlabel='Test error (zero-one loss)',
+    im, cbar = heatmap(data, param_values[0], param_values[1], 
+                       ax=ax, cmap=cmap, 
+                       cbarlabel=cbarlabel,
                        title=title, xlabel=xlabel, ylabel=ylabel)
     texts = annotate_heatmap(im, valfmt='{x:.3f}')
 
@@ -201,3 +200,17 @@ def plot_digits(X, y, n):
         plt.xlabel([y[i]])
     plt.tight_layout()
     plt.savefig('img/digits.png', dpi=300, bbox_inches='tight')
+
+
+def plot_runtime_comparison(Ts, times):
+    fig, ax = plt.subplots()
+
+    ax.plot(Ts, times['naive'], label='naive')
+    ax.plot(Ts, times['optimized'], label='optimized')
+    ax.legend()
+    ax.set_xlabel('Number of iterations (T)', labelpad=15)
+    ax.set_ylabel('Runtime (s)', labelpad=15)
+    ax.set_title(r'\textbf{Naive vs optimized implementation comparison}', 
+                    pad=15, weight='bold')
+    fig.tight_layout()
+    plt.savefig('img/runtime.png', dpi=300, bbox_inches='tight')
