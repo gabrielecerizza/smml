@@ -12,7 +12,7 @@ class KFoldCrossValidation:
         self.seed = seed
     
     def cross_validate(self, estimator, X, y):
-        self._y_tests, times, errors, accuracies = [], [], [], []
+        self.y_tests_, times, errors, accuracies = [], [], [], []
 
         for X_train, X_test, y_train, y_test in tqdm(
                 self._generate_folds(X, y),
@@ -25,7 +25,7 @@ class KFoldCrossValidation:
             times.append(time.process_time() - start)
             errors.append(score['zero_one_loss'])
             accuracies.append(score['accuracy'])
-            self._y_tests.append(y_test)
+            self.y_tests_.append(y_test)
 
         return {
             'error': np.mean(errors),
