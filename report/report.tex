@@ -34,7 +34,7 @@
 
 In this report we detail the results of our experiments on the Pegasos algorithm~\cite{shalev-pegasos-2011} over a multiclass classification task, pursuant to the project specifications set out for the Statistical Methods for Machine Learning course of the Università degli Studi di Milano\footnote{\url{https://cesa-bianchi.di.unimi.it/MSA/index\_21-22.html}}. 
 
-In Section~\ref{sec:dataset} we illustrate the dataset used in the experiments. In Section~\ref{sec:algorithm} we briefly describe the algorithm and its implementation. In Section~\ref{sec:experiments} we show the results of our experiments and provide comments thereon. Finally, Section~\ref{sec:conclusions} contains our concluding remarks. 
+In Section~\ref{sec:dataset} we illustrate the dataset used in the experiments. In Section~\ref{sec:algorithm} we briefly describe the algorithm and its implementation. In Section~\ref{sec:experiments} we show the results of our experiments and provide comments on them. Finally, Section~\ref{sec:conclusions} contains our concluding remarks. 
 
 \section{Dataset}
 \label{sec:dataset}
@@ -116,7 +116,7 @@ The vector $\bm{\alpha}_{t+1}$ can be kept in memory and used to quickly evaluat
   $\bm{\alpha}_1 \gets (0,\dots,0)$\;
   \For{$t=1$ \KwTo $T$}{   
     Choose $s_r \in \{0,\dots, \lvert S \rvert\}$ uniformly at random \;
-    \If{$y_{s_r}\frac{1}{\lambda t} \sum_{j = 1}^{m} \bm{\alpha}_{t + 1}[j] y_j K(\bm{x}_j, \bm{x}_{s_r}) < 1$}{
+    \If{$y_{s_r}\frac{1}{\lambda t} \sum_{j = 1}^{m} \bm{\alpha}_{t}[j] y_j K(\bm{x}_j, \bm{x}_{s_r}) < 1$}{
       $\bm{\alpha}_{t+1}[s_r] = \bm{\alpha}_{t}[s_r] + 1$\;
     }
   }
@@ -162,11 +162,11 @@ where $n \in \mathbb{N}$ is the degree of the polynomial.
 
 In this section we expound on two implementation details that improve the runtime of the algorithm.
 
-\subsubsection{Kernel matrix.} In order to perform multiclass classification, we need to train multiple classifiers, each slated to run the Pegasos algorithm over the same training set. Within this framework, the kernel function between two given examples may be computed multiple times, resulting in redundant computations.
+\subsubsection{Kernel matrix.} In order to perform multiclass classification, we need to train multiple classifiers, each running the Pegasos algorithm over the same training set. Within this framework, the kernel function between two given examples may be computed multiple times, resulting in redundant computations.
 
 Moreover, at each iteration the Pegasos algorithm computes the kernel function between a randomly drawn training example and all the other training examples. Drawing the same example multiple times results in further redundant computations.
 
-Redundant computations adversely affect the runtime of the algorithm and should therefore be avoided. To this effect, we opted to compute ahead of time the kernel matrix $K$, such that
+Redundant computations adversely affect the runtime of the algorithm and should therefore be avoided. To this effect, we opted to compute ahead of time the kernel matrix $K \in \mathbb{R}^{m \times m}$, such that
 \[
   K_{i,j} = K(\bm{x}_i, \bm{x}_j) \quad \forall i,j=1,\dots,m \, .
 \]
@@ -184,17 +184,17 @@ where $\odot$ is the Hadamard product and $K$ is the kernel matrix between the t
 \[
   \bm{h}_i = (\bm{\alpha}_{T+1} \odot y)^\top K^\prime \, ,
 \]
-where $K^\prime$ is the kernel matrix between the training examples and the test examples and $\bm{h}_i$ is the vector containing the predictions for all test examples returned by classifier $c_i$.
+where $K^\prime$ is the kernel matrix between the test examples and the training examples and $\bm{h}_i$ is the vector containing the predictions for all the test examples returned by classifier $c_i$.
 
-Also the computation of the kernel matrices can be vectorized. In the case of the polynomial kernel, the vectorization is trivial, since the dot product between vectors in~(\ref{eqn:kernel:polynomial}) directly translates into a matrix product. In the case of the Gaussian kernel, however, an analogous approach would fail, because subtracting the training set matrix from itself in~(\ref{eqn:kernel:gaussian}) would result in a null matrix. We therefore follow another approach.
+Also the computation of the kernel matrices can be vectorized. In the case of the polynomial kernel, the vectorization is trivial, since the dot product between vectors in~(\ref{eqn:kernel:polynomial}) directly translates into a matrix product. In the case of the Gaussian kernel, however, an analogous approach would fail, because subtracting the training set matrix from itself in~(\ref{eqn:kernel:gaussian}) would result in a null matrix. We therefore followed another approach.
 
 Let $S \in \mathbb{R}^{n \times m}$ be a training set. In order to vectorize the kernel matrix with respect to the Gaussian kernel, we need to compute the difference between each row in $S$ and all the rows in $S$. To accomplish this, we first turn $S$ into a tensor $T \in \mathbb{R}^{n \times 1 \times m}$, in which each row $T_i$ is a $1 \times m$ matrix containing only the corresponding row $S_i$ of the original matrix. Then, we simply compute
 \[
   R = T - S \, ,
 \]
-where $R \in \mathbb{R}^{n \times n \times m}$ is a tensor having $R_i = S_i - S \; \forall i=1,\dots,n$, in which $S_i$ is casted into a $\mathbb{R}^{n \times m}$ matrix using broadcasting rules\footnote{\url{https://numpy.org/doc/stable/user/basics.broadcasting.html}}. Once $R$ is obtained, the Gaussian kernel formula in~\ref{eqn:kernel:gaussian} can be applied straightforwardly. The same procedure can be applied when computing the kernel matrix between the training and test examples.
+where $R \in \mathbb{R}^{n \times n \times m}$ is a tensor having $R_i = S_i - S \; \forall i=1,\dots,n$, in which $S_i$ is casted into a $\mathbb{R}^{n \times m}$ matrix using broadcasting rules\footnote{\url{https://numpy.org/doc/stable/user/basics.broadcasting.html}}. Once $R$ is obtained, the Gaussian kernel formula in~\ref{eqn:kernel:gaussian} can be applied straightforwardly. The same procedure can be applied when computing the kernel matrix between the test and training examples.
 
-One caveat of this approach is that $R$ has a much larger memory footprint than the $n \times n$ kernel matrix. At most, the required memory would be $0.34 \times 256 \approx 87$ gigabytes. For this reason, it is necessary to split $S$ into chunks, apply the procedure on each chunk and then concatenate the results.
+One caveat of this approach is that $R$ has a much larger memory footprint than the $n \times n$ kernel matrix. At most, the required memory for the USPS dataset would be $0.34 \times 256 \approx 87$ gigabytes. For this reason, it is necessary to split $S$ into chunks, apply the procedure on each chunk and then concatenate the results.
 
 \subsubsection{Comparison.} The training runtime reduction obtained by applying the abovementioned optimizations on a single binary classifier is given in Figure~\ref{fig:algorithm:runtime}. The shown improvement becomes even more prominent when accounting the fact that, for multiclass classification, multiple classifiers need to be trained.
 
@@ -224,9 +224,9 @@ We ran the algorithm with the polynomial and Gaussian kernel. The polynomial ker
 
 Considering the training settings employing a polynomial kernel (Figures~\ref{fig:experiments:polynomial_2}, \ref{fig:experiments:polynomial_3}, \ref{fig:experiments:polynomial_4}, and \ref{fig:experiments:polynomial_7}), the best result is obtained using a degree of 3 (0.026), with degree 4 being very close (0.027). We can also observe how $\lambda$ plays a marginal role in determining the test error, with the exception of the test error measured when the degree is equal to 2. When using a degree of 7, the algorithm becomes completely insensitive to hyperparameter $\lambda$. Moreover, using a degree of 7 yields results that are generally worse across all choices of $T$, even when compared with degree 2. This is the telltale sign of overfitting.
 
-Considering the training settings employing a Gaussian kernel (Figures~\ref{fig:experiments:gaussian_25}, \ref{fig:experiments:gaussian_75}, and \ref{fig:experiments:gaussian_2}), the best result is obtained with $\gamma$ equal to 2 (0.027). The hyperparameter $\lambda$ scarcely affects the performance of the algorithm when $\gamma$ is equal to 0.25 or 0.75, whereas it has a major effect when $\gamma$ is equal to 2. This behavior mirrors the one observed for the polynomial kernel, where overfitting hampered the effect of hyperparameter $\lambda$ and prevented the algorithm from reaching the optimal test error of lower degree polynomial kernels. On a related note, we remind that, for the Gaussian kernel, overfitting occurs when $\gamma$ is small with respect to the Euclidean distance between two examples. Contrary to what was observed in~\cite{shalev-pegasos-2011}, the algorithm yields a better test error when using low values of $\lambda$, at least within the investigated interval. This can be noticed across all values of $\gamma$ and all values of $T$.
+Considering the training settings employing a Gaussian kernel (Figures~\ref{fig:experiments:gaussian_25}, \ref{fig:experiments:gaussian_75}, and \ref{fig:experiments:gaussian_2}), the best result is obtained with $\gamma$ equal to 2 (0.027). The hyperparameter $\lambda$ scarcely affects the performance of the algorithm when $\gamma$ is equal to 0.25 or 0.75, whereas it has a major effect when $\gamma$ is equal to 2. This behavior mirrors the one observed for the polynomial kernel, where overfitting hampered the effect of hyperparameter $\lambda$ and prevented the algorithm from reaching the best test error of lower degree polynomial kernels. On a related note, we remind that, for the Gaussian kernel, overfitting occurs when $\gamma$ is small with respect to the Euclidean distance between two examples. Contrary to what was observed in~\cite{shalev-pegasos-2011}, the algorithm yields a better test error when using low values of $\lambda$, at least within the investigated interval. This can be noticed across all values of $\gamma$ and all values of $T$.
 
-Surprisingly, the overall best setting for the polynomial kernel outperforms the overall best setting for the Gaussian kernel, albeit by a small margin. However, the best setting for the Gaussian kernel is consistently better than the best setting for the polynomial kernel when using a small number of iterations (namely, 1000, 5000, 10000, 25000). In addition, the overall best setting for the Gaussian kernel reaches its optimal test error faster than the overall best setting for the polynomial kernel. Indeed, while the polynomial kernel with degree 3 reaches 0.026 test error with 50000 iterations, the Gaussian kernel with $\gamma$ equal to 2 reaches 0.027 test error with half the iterations.
+Surprisingly, the overall best setting for the polynomial kernel outperforms the overall best setting for the Gaussian kernel, albeit by a small margin. However, the best setting for the Gaussian kernel is consistently better than the best setting for the polynomial kernel when using a small number of iterations (namely, 1000, 5000, 10000, 25000). In addition, the overall best setting for the Gaussian kernel reaches its lowest test error faster than the overall best setting for the polynomial kernel. Indeed, while the polynomial kernel with degree 3 reaches 0.026 test error with 50000 iterations, the Gaussian kernel with $\gamma$ equal to 2 reaches 0.027 test error with half the iterations.
 
 Finally, Figure~\ref{fig:experiments:cv_runtime} shows the runtime of the algorithm for the different values of $T$, averaged with respect to the values of $\lambda$. From this figure we infer that training with the Gaussian kernel requires significantly more time than training with the polynomial kernel across all the values of $T$. The runtime presents also an upward trend when increasing the number of iterations, although the growth is slow and seemingly linear in the number of iterations. 
 
